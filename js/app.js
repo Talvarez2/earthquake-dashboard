@@ -1,16 +1,43 @@
 let earthquakes = [];
+let filters = { minMag: 2.5, maxMag: 10, period: 'day' };
 
 async function loadEarthquakes() {
   try {
-    earthquakes = await EarthquakeAPI.fetchRecent('day', 2.5);
-    EQMap.plotEarthquakes(earthquakes);
-    renderList(earthquakes);
+    earthquakes = await EarthquakeAPI.fetchRecent(filters.period, filters.minMag);
+    applyFilters();
   } catch (e) { console.error('Failed to load earthquakes:', e); }
+}
+
+function applyFilters() {
+  const filtered = earthquakes.filter(q => {
+    const mag = q.properties.mag;
+    return mag >= filters.minMag && mag <= filters.maxMag;
+  });
+  EQMap.plotEarthquakes(filtered, onQuakeClick);
+  renderList(filtered);
+}
+
+function onQuakeClick(q) {
+  const [lng, lat, depth] = q.geometry.coordinates;
+  const { mag, place, time } = q.properties;
+  EQMap.flyTo(lat, lng);
+  const detail = document.getElementById('eq-detail');
+  detail.classList.remove('hidden');
+  detail.innerHTML = `
+    <h2>Earthquake Detail</h2>
+    <div class="detail-card">
+      <div class="detail-mag">M${mag.toFixed(1)}</div>
+      <p><strong>Location:</strong> ${place}</p>
+      <p><strong>Depth:</strong> ${depth.toFixed(1)} km</p>
+      <p><strong>Time:</strong> ${new Date(time).toLocaleString()}</p>
+      <p><strong>Coordinates:</strong> ${lat.toFixed(3)}°, ${lng.toFixed(3)}°</p>
+    </div>`;
 }
 
 function renderList(quakes) {
   const ul = document.getElementById('eq-list');
   const sorted = [...quakes].sort((a, b) => b.properties.time - a.properties.time);
+  document.getElementById('eq-count').textContent = `(${sorted.length})`;
   ul.innerHTML = sorted.slice(0, 50).map(q => {
     const { mag, place, time } = q.properties;
     return `<li class="eq-item" data-id="${q.id}">
@@ -21,12 +48,40 @@ function renderList(quakes) {
   ul.querySelectorAll('.eq-item').forEach(li => {
     li.addEventListener('click', () => {
       const q = quakes.find(e => e.id === li.dataset.id);
-      if (q) EQMap.flyTo(q.geometry.coordinates[1], q.geometry.coordinates[0]);
+      if (q) onQuakeClick(q);
     });
+  });
+}
+
+function initFilters() {
+  const el = document.getElementById('filters');
+  el.innerHTML = `
+    <h2>Filters</h2>
+    <label>Min Magnitude<input type="range" id="f-min" min="0" max="9" step="0.5" value="${filters.minMag}"><span id="f-min-v">${filters.minMag}</span></label>
+    <label>Max Magnitude<input type="range" id="f-max" min="1" max="10" step="0.5" value="${filters.maxMag}"><span id="f-max-v">${filters.maxMag}</span></label>
+    <label>Time Period<select id="f-period">
+      <option value="day" selected>Last 24 Hours</option>
+      <option value="week">Last 7 Days</option>
+      <option value="month">Last 30 Days</option>
+    </select></label>`;
+  el.querySelector('#f-min').addEventListener('input', e => {
+    filters.minMag = +e.target.value;
+    el.querySelector('#f-min-v').textContent = filters.minMag;
+    applyFilters();
+  });
+  el.querySelector('#f-max').addEventListener('input', e => {
+    filters.maxMag = +e.target.value;
+    el.querySelector('#f-max-v').textContent = filters.maxMag;
+    applyFilters();
+  });
+  el.querySelector('#f-period').addEventListener('change', e => {
+    filters.period = e.target.value;
+    loadEarthquakes();
   });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   EQMap.init();
+  initFilters();
   loadEarthquakes();
 });

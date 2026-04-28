@@ -39,6 +39,17 @@ main { flex: 1; position: relative; }
 
 .hidden { display: none; }
 
+/* Filters */
+#filters label { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 6px; }
+#filters input[type="range"] { flex: 1; accent-color: var(--accent); }
+#filters select { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--surface2); border-radius: 4px; padding: 4px; }
+
+/* Detail card */
+.detail-card { background: var(--surface2); border-radius: 8px; padding: 12px; font-size: 0.85rem; line-height: 1.8; }
+.detail-mag { font-size: 2rem; font-weight: bold; color: var(--accent); }
+#eq-detail h2 { margin-bottom: 8px; }
+#eq-count { font-size: 0.85rem; color: var(--text-dim); }
+
 /* Leaflet popup */
 .leaflet-popup-content-wrapper { background: var(--surface); color: var(--text); border-radius: 8px; }
 .leaflet-popup-tip { background: var(--surface); }
