@@ -10,36 +10,17 @@
 <body>
   <header>
     <h1>🌍 <span>Earthquake</span> & Weather Dashboard</h1>
-    <div id="status" class="status-bar">Loading...</div>
+    <span id="status-bar">Loading…</span>
   </header>
   <div class="main">
     <div id="map"></div>
     <aside class="sidebar">
-      <div id="detail-panel">
-        <h3>Earthquake Details</h3>
-        <dl class="detail-grid" id="detail-content"></dl>
-      </div>
-      <div id="weather-panel">
-        <h3>Weather at Location</h3>
-        <div id="weather-content"></div>
-      </div>
+      <div id="detail-panel" class="sidebar-section"></div>
+      <div id="weather-panel" class="sidebar-section"></div>
       <div class="sidebar-section">
-        <h3>Filters</h3>
-        <label>Min Magnitude: <select id="filter-mag">
-          <option value="2.5">2.5+</option><option value="4">4.0+</option>
-          <option value="5">5.0+</option><option value="6">6.0+</option>
-        </select></label>
-        <label style="margin-left:0.75rem">Period: <select id="filter-period">
-          <option value="24h">24 Hours</option><option value="7d">7 Days</option>
-          <option value="30d">30 Days</option>
-        </select></label>
+        <h3>Recent Earthquakes</h3>
       </div>
       <div id="earthquake-list"></div>
-      <div class="charts-section">
-        <canvas id="chart-histogram"></canvas>
-        <canvas id="chart-timeline"></canvas>
-        <canvas id="chart-scatter"></canvas>
-      </div>
     </aside>
   </div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

@@ -1,101 +1,56 @@
 const App = {
   data: null,
-  period: '24h',
-  minMag: 2.5,
 
   async init() {
     EQMap.init();
-    EQCharts.init();
-    document.getElementById('filter-mag').addEventListener('change', e => {
-      this.minMag = parseFloat(e.target.value);
-      this.applyFilters();
-    });
-    document.getElementById('filter-period').addEventListener('change', e => {
-      this.period = e.target.value;
-      this.loadData();
-    });
     await this.loadData();
-    setInterval(() => this.loadData(), 5 * 60 * 1000);
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
   },
-
-  seenIds: new Set(),
 
   async loadData() {
     try {
-      this.data = await EarthquakeAPI.fetch(this.period);
-      this.checkNotifications(this.data.features);
-      this.applyFilters();
-      document.getElementById('status').textContent =
-        `${this.data.metadata.count} earthquakes loaded — ${new Date().toLocaleTimeString()}`;
+      this.data = await EarthquakeAPI.fetch('24h');
+      const count = this.data.features.length;
+      document.getElementById('status-bar').textContent = `${count} earthquakes loaded`;
+      EQMap.render(this.data, f => this.selectQuake(f));
+      this.renderList(this.data.features);
     } catch (e) {
-      document.getElementById('status').textContent = `Error: ${e.message}`;
+      document.getElementById('status-bar').textContent = 'Error loading data';
+      console.error(e);
     }
   },
 
-  checkNotifications(features) {
-    if (Notification.permission !== 'granted') return;
-    features.filter(f => f.properties.mag >= 5).forEach(f => {
-      if (this.seenIds.has(f.id)) return;
-      this.seenIds.add(f.id);
-      new Notification(`🌍 M${f.properties.mag.toFixed(1)} Earthquake`, {
-        body: f.properties.place,
-        icon: '🌍'
-      });
-    });
-  },
-
-  applyFilters() {
-    if (!this.data) return;
-    const filtered = {
-      ...this.data,
-      features: this.data.features.filter(f => f.properties.mag >= this.minMag)
-    };
-    EQMap.render(filtered, f => this.selectEarthquake(f));
-    this.renderList(filtered.features);
-    EQCharts.update(filtered.features);
+  selectQuake(f) {
+    const p = f.properties;
+    const [lng, lat, depth] = f.geometry.coordinates;
+    const panel = document.getElementById('detail-panel');
+    panel.className = 'sidebar-section active';
+    panel.innerHTML = `<h3>Earthquake Details</h3>
+      <table>
+        <tr><td>Magnitude</td><td>${p.mag}</td></tr>
+        <tr><td>Location</td><td>${p.place}</td></tr>
+        <tr><td>Depth</td><td>${depth.toFixed(1)} km</td></tr>
+        <tr><td>Time</td><td>${new Date(p.time).toLocaleString()}</td></tr>
+        <tr><td>Coordinates</td><td>${lat.toFixed(3)}, ${lng.toFixed(3)}</td></tr>
+      </table>`;
   },
 
   renderList(features) {
     const list = document.getElementById('earthquake-list');
     const sorted = [...features].sort((a, b) => b.properties.time - a.properties.time);
-    list.innerHTML = sorted.slice(0, 100).map(f => {
+    list.innerHTML = sorted.map(f => {
       const p = f.properties;
       return `<div class="eq-item" data-id="${f.id}">
-        <span class="mag" style="color:${EQMap.depthColor(f.geometry.coordinates[2])}">${p.mag.toFixed(1)}</span>
+        <span class="mag">${p.mag.toFixed(1)}</span>
         <span class="place">${p.place}</span>
         <span class="time">${new Date(p.time).toLocaleString()}</span>
       </div>`;
     }).join('');
-    list.querySelectorAll('.eq-item').forEach((el, i) => {
-      el.addEventListener('click', () => {
-        list.querySelectorAll('.eq-item').forEach(e => e.classList.remove('selected'));
-        el.classList.add('selected');
-        this.selectEarthquake(sorted[i]);
-      });
+    list.addEventListener('click', e => {
+      const item = e.target.closest('.eq-item');
+      if (!item) return;
+      const f = features.find(f => f.id === item.dataset.id);
+      if (f) this.selectQuake(f);
     });
-  },
-
-  async selectEarthquake(f) {
-    const p = f.properties;
-    const [lng, lat, depth] = f.geometry.coordinates;
-    document.getElementById('detail-content').innerHTML = `
-      <dt>Magnitude</dt><dd>${p.mag.toFixed(1)}</dd>
-      <dt>Location</dt><dd>${p.place}</dd>
-      <dt>Depth</dt><dd>${depth.toFixed(1)} km</dd>
-      <dt>Time</dt><dd>${new Date(p.time).toLocaleString()}</dd>
-      <dt>Coordinates</dt><dd>${lat.toFixed(3)}, ${lng.toFixed(3)}</dd>`;
-    document.getElementById('detail-panel').classList.add('active');
-    EQMap.map.flyTo([lat, lng], 6);
-    try {
-      const weather = await WeatherAPI.fetch(lat, lng);
-      WeatherAPI.render(weather);
-    } catch (e) {
-      document.getElementById('weather-content').textContent = 'Weather unavailable';
-      document.getElementById('weather-panel').classList.add('active');
-    }
   }
 };
 
