@@ -49,7 +49,11 @@ const App = {
       </div>`;
     }).join('');
     list.querySelectorAll('.eq-item').forEach((el, i) => {
-      el.addEventListener('click', () => this.selectEarthquake(sorted[i]));
+      el.addEventListener('click', () => {
+        list.querySelectorAll('.eq-item').forEach(e => e.classList.remove('selected'));
+        el.classList.add('selected');
+        this.selectEarthquake(sorted[i]);
+      });
     });
   },
 
