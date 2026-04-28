@@ -21,6 +21,13 @@ function onQuakeClick(q) {
   const [lng, lat, depth] = q.geometry.coordinates;
   const { mag, place, time } = q.properties;
   EQMap.flyTo(lat, lng);
+  // Fetch weather for this location
+  const wp = document.getElementById('weather-panel');
+  wp.classList.remove('hidden');
+  wp.innerHTML = '<h2>🌤 Weather</h2><p>Loading...</p>';
+  WeatherAPI.fetchWeather(lat, lng).then(data => {
+    wp.innerHTML = WeatherAPI.render(data, lat, lng);
+  }).catch(() => { wp.innerHTML = '<h2>🌤 Weather</h2><p>Failed to load weather.</p>'; });
   const detail = document.getElementById('eq-detail');
   detail.classList.remove('hidden');
   detail.innerHTML = `
