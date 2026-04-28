@@ -57,18 +57,24 @@ const App = {
     });
   },
 
-  selectEarthquake(f) {
+  async selectEarthquake(f) {
     const p = f.properties;
     const [lng, lat, depth] = f.geometry.coordinates;
-    const panel = document.getElementById('detail-panel');
     document.getElementById('detail-content').innerHTML = `
       <dt>Magnitude</dt><dd>${p.mag.toFixed(1)}</dd>
       <dt>Location</dt><dd>${p.place}</dd>
       <dt>Depth</dt><dd>${depth.toFixed(1)} km</dd>
       <dt>Time</dt><dd>${new Date(p.time).toLocaleString()}</dd>
       <dt>Coordinates</dt><dd>${lat.toFixed(3)}, ${lng.toFixed(3)}</dd>`;
-    panel.classList.add('active');
+    document.getElementById('detail-panel').classList.add('active');
     EQMap.map.flyTo([lat, lng], 6);
+    try {
+      const weather = await WeatherAPI.fetch(lat, lng);
+      WeatherAPI.render(weather);
+    } catch (e) {
+      document.getElementById('weather-content').textContent = 'Weather unavailable';
+      document.getElementById('weather-panel').classList.add('active');
+    }
   }
 };
 

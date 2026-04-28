@@ -129,3 +129,19 @@ select {
   border-radius: 4px;
   font-size: 0.85rem;
 }
+
+.weather-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.weather-main {
+  grid-column: 1 / -1;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.weather-stat span { margin-right: 0.3rem; }
