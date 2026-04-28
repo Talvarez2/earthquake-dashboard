@@ -50,6 +50,9 @@ main { flex: 1; position: relative; }
 #eq-detail h2 { margin-bottom: 8px; }
 #eq-count { font-size: 0.85rem; color: var(--text-dim); }
 
+/* Charts */
+#stats-panel canvas { background: var(--surface2); border-radius: 8px; padding: 8px; margin-bottom: 10px; }
+
 /* Leaflet popup */
 .leaflet-popup-content-wrapper { background: var(--surface); color: var(--text); border-radius: 8px; }
 .leaflet-popup-tip { background: var(--surface); }

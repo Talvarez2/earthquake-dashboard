@@ -15,6 +15,7 @@ function applyFilters() {
   });
   EQMap.plotEarthquakes(filtered, onQuakeClick);
   renderList(filtered);
+  EQCharts.render(filtered);
 }
 
 function onQuakeClick(q) {
