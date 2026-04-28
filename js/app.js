@@ -25,13 +25,6 @@ function notify(title, body) {
   else if (Notification.permission !== 'denied') Notification.requestPermission().then(p => { if (p === 'granted') new Notification(title, { body }); });
 }
 
-async function loadEarthquakes() {
-  try {
-    earthquakes = await EarthquakeAPI.fetchRecent(filters.period, filters.minMag);
-    applyFilters();
-  } catch (e) { console.error('Failed to load earthquakes:', e); }
-}
-
 function applyFilters() {
   const filtered = earthquakes.filter(q => {
     const mag = q.properties.mag;
