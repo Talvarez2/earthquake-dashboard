@@ -5,6 +5,7 @@ const App = {
 
   async init() {
     EQMap.init();
+    EQCharts.init();
     document.getElementById('filter-mag').addEventListener('change', e => {
       this.minMag = parseFloat(e.target.value);
       this.applyFilters();
@@ -35,6 +36,7 @@ const App = {
     };
     EQMap.render(filtered, f => this.selectEarthquake(f));
     this.renderList(filtered.features);
+    EQCharts.update(filtered.features);
   },
 
   renderList(features) {
