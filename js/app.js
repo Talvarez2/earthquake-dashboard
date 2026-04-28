@@ -1,5 +1,29 @@
 let earthquakes = [];
 let filters = { minMag: 2.5, maxMag: 10, period: 'day' };
+let seenIds = new Set();
+const REFRESH_MS = 5 * 60 * 1000;
+
+async function loadEarthquakes() {
+  try {
+    earthquakes = await EarthquakeAPI.fetchRecent(filters.period, filters.minMag);
+    checkNewLargeQuakes(earthquakes);
+    applyFilters();
+  } catch (e) { console.error('Failed to load earthquakes:', e); }
+}
+
+function checkNewLargeQuakes(quakes) {
+  quakes.forEach(q => {
+    if (!seenIds.has(q.id) && q.properties.mag >= 5) {
+      notify(`M${q.properties.mag.toFixed(1)} Earthquake`, q.properties.place);
+    }
+    seenIds.add(q.id);
+  });
+}
+
+function notify(title, body) {
+  if (Notification.permission === 'granted') new Notification(title, { body, icon: '🌍' });
+  else if (Notification.permission !== 'denied') Notification.requestPermission().then(p => { if (p === 'granted') new Notification(title, { body }); });
+}
 
 async function loadEarthquakes() {
   try {
@@ -92,4 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
   EQMap.init();
   initFilters();
   loadEarthquakes();
+  setInterval(loadEarthquakes, REFRESH_MS);
+  if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
 });

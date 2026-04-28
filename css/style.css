@@ -53,6 +53,13 @@ main { flex: 1; position: relative; }
 /* Charts */
 #stats-panel canvas { background: var(--surface2); border-radius: 8px; padding: 8px; margin-bottom: 10px; }
 
+/* Responsive */
+@media (max-width: 768px) {
+  #dashboard { flex-direction: column; }
+  #sidebar { width: 100%; max-height: 50vh; border-right: none; border-bottom: 1px solid var(--surface2); }
+  main { height: 50vh; }
+}
+
 /* Leaflet popup */
 .leaflet-popup-content-wrapper { background: var(--surface); color: var(--text); border-radius: 8px; }
 .leaflet-popup-tip { background: var(--surface); }
