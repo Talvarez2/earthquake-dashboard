@@ -1,39 +1,36 @@
 const EQMap = {
   map: null,
-  markers: L.layerGroup(),
+  markers: null,
 
   init() {
-    this.map = L.map('map', { center: [20, 0], zoom: 2, zoomControl: true });
+    this.map = L.map('map', { center: [20, 0], zoom: 2, zoomControl: false });
+    L.control.zoom({ position: 'topright' }).addTo(this.map);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 18
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      maxZoom: 18
     }).addTo(this.map);
-    this.markers.addTo(this.map);
-    return this;
+    this.markers = L.layerGroup().addTo(this.map);
   },
 
-  depthColor(depth) {
-    if (depth < 10) return '#00ff88';
-    if (depth < 30) return '#88ff00';
-    if (depth < 70) return '#ffcc00';
-    if (depth < 150) return '#ff6600';
-    return '#ff0033';
+  depthColor(d) {
+    return d > 300 ? '#800026' : d > 150 ? '#bd0026' : d > 70 ? '#e31a1c' :
+           d > 30 ? '#fc4e2a' : d > 10 ? '#fd8d3c' : '#feb24c';
   },
 
-  plotEarthquakes(quakes, onClick) {
+  render(geojson, onClick) {
     this.markers.clearLayers();
-    quakes.forEach(q => {
-      const { mag, place, time } = q.properties;
-      const [lng, lat, depth] = q.geometry.coordinates;
-      const radius = Math.max(mag * 3, 4);
+    geojson.features.forEach(f => {
+      const [lng, lat, depth] = f.geometry.coordinates;
+      const mag = f.properties.mag;
       const marker = L.circleMarker([lat, lng], {
-        radius, fillColor: this.depthColor(depth), color: '#fff',
-        weight: 0.5, fillOpacity: 0.8
+        radius: Math.max(mag * 3, 4),
+        fillColor: this.depthColor(depth),
+        color: '#fff',
+        weight: 0.5,
+        fillOpacity: 0.8
       });
-      marker.bindPopup(`<b>M${mag.toFixed(1)}</b><br>${place}<br>Depth: ${depth.toFixed(1)} km<br>${new Date(time).toLocaleString()}`);
-      if (onClick) marker.on('click', () => onClick(q));
+      marker.on('click', () => onClick(f));
       this.markers.addLayer(marker);
     });
-  },
-
-  flyTo(lat, lng) { this.map.flyTo([lat, lng], 8, { duration: 1 }); }
+  }
 };
