@@ -15,17 +15,36 @@ const App = {
       this.loadData();
     });
     await this.loadData();
+    setInterval(() => this.loadData(), 5 * 60 * 1000);
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
   },
+
+  seenIds: new Set(),
 
   async loadData() {
     try {
       this.data = await EarthquakeAPI.fetch(this.period);
+      this.checkNotifications(this.data.features);
       this.applyFilters();
       document.getElementById('status').textContent =
         `${this.data.metadata.count} earthquakes loaded — ${new Date().toLocaleTimeString()}`;
     } catch (e) {
       document.getElementById('status').textContent = `Error: ${e.message}`;
     }
+  },
+
+  checkNotifications(features) {
+    if (Notification.permission !== 'granted') return;
+    features.filter(f => f.properties.mag >= 5).forEach(f => {
+      if (this.seenIds.has(f.id)) return;
+      this.seenIds.add(f.id);
+      new Notification(`🌍 M${f.properties.mag.toFixed(1)} Earthquake`, {
+        body: f.properties.place,
+        icon: '🌍'
+      });
+    });
   },
 
   applyFilters() {
